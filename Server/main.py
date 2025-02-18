@@ -25,14 +25,15 @@ def on_connect(client, userdata, flags, rc):
         print(f"Failed to connect with result code {rc}")
 
 def on_message(client, userdata, msg):
-    """Callback for when a message is received."""
     try:
         # Parse JSON message
         payload = json.loads(msg.payload.decode())
         current_time = datetime.now()
-        
-        # check the topic if it is the base topic + /readings
-        # if it is, print the payload
+
+        # Check the topic if it matches the base topic + '/readings'
+        if msg.topic == BASE_TOPIC + "/readings":
+            print(f"Received data at {current_time}:")
+            print(json.dumps(payload, indent=4))  # Pretty print the JSON payload
             
     except json.JSONDecodeError:
         print(f"\nReceived non-JSON message on {msg.topic}:")
