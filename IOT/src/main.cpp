@@ -6,7 +6,7 @@
 
 // MQTT client - using descriptive client ID and topic
 // #define CLIENT_ID "esp32-sensors"
-// #define TOPIC_PREFIX "706/ece140/sensors"
+#define TOPIC_PREFIX "706/ece140/sensors"
 
 Adafruit_BMP085 bmp;
 
