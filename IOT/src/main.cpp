@@ -7,6 +7,8 @@
 // MQTT client - using descriptive client ID and topic
 // #define CLIENT_ID "esp32-sensors"
 #define TOPIC_PREFIX "706/ece140/sensors"
+WiFiClient espClient;
+PubSubClient client(espClient);
 
 Adafruit_BMP085 bmp;
 
@@ -20,9 +22,40 @@ const char* topicPrefix = TOPIC_PREFIX;
 
 ECE140_MQTT mqtt(clientId, topicPrefix);
 
-
+void setup_wifi() {
+    delay(10);
+    Serial.println();
+    Serial.print("Connecting to ");
+    Serial.println(ssid);
+  
+    WiFi.begin(ssid, password);
+  
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+      Serial.print(".");
+    }
+  
+    Serial.println("");
+    Serial.println("WiFi connected");
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
+  }
+  
+  void reconnect() {
+    while (!client.connected()) {
+      Serial.print("Attempting MQTT connection...");
+      if (client.connect("ESP32Client")) {
+        Serial.println("connected");
+      } else {
+        Serial.print("failed, rc=");
+        Serial.print(client.state());
+        Serial.println(" try again in 5 seconds");
+        delay(5000);
+      }
+    }
+  }
 void setup() {
-    Serial.begin(115200);
+    
     // ECE140_WIFI wifi;
 
     // // Connect to WiFi
@@ -42,7 +75,9 @@ void setup() {
     // } else {
     //     Serial.println("Failed to connect to MQTT broker");
     // }
-    
+    Serial.begin(115200);
+    setup_wifi();
+    client.setServer(mqtt_server, 1883);
     if (!bmp.begin()) {
         Serial.println("Could not find a valid BMP085 sensor, check wiring!");
         while (1) {}
