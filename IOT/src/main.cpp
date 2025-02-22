@@ -3,6 +3,8 @@
 #include <Wire.h>
 #include <Adafruit_BMP085.h>
 
+
+
 // #define CLIENT_ID "esp32-sensors"
 // #define TOPIC_PREFIX "ece140/sensors"
 
@@ -38,20 +40,19 @@ void setup() {
 }
 
 void loop() {
-    // Read temperature and pressure from the sensor
-    float temperature = bmp.readTemperature(); // Temperature in °C
-    float pressure = bmp.readPressure() / 100.0; // Pressure in hPa
+    float temperature = bmp.readTemperature();
+    float pressure = bmp.readPressure();
 
-    // Format payload as JSON-like string
-    String payload = "{\"temperature\": " + String(temperature) + ", \"pressure\": " + String(pressure) + "}";
+    // Create a JSON-like payload
+    String payload = "{\"temperature\": " + String(temperature) +
+                     ", \"pressure\": " + String(pressure) + "}";
 
-    // Publish payload to MQTT topic
-    mqtt.publishMessage("readings", payload);
+    // Publish the payload to the MQTT broker
+    if (mqtt.publishMessage("readings", payload.c_str())) {
+        Serial.println("Message sent successfully!");
+    } else {
+        Serial.println("Failed to send message!");
+    }
 
-    // Print payload to Serial Monitor for debugging
-    Serial.print("Published Payload: ");
-    Serial.println(payload);
-
-    // Wait for a second before taking the next reading
-    delay(1000);
+    delay(5000); // Send data every 5 seconds
 }
