@@ -1,42 +1,65 @@
 import paho.mqtt.client as mqtt
-import requests
-import os
-import time
-from dotenv import load_dotenv
+import json
+from datetime import datetime
+from collections import deque
+import numpy as np
 
-load_dotenv()
+# MQTT Broker settings
+BROKER = "broker.hivemq.com"
+PORT = 1883
+BASE_TOPIC = "ENTER_SOMETHING_UNIQUE_HERE_THAT_SHOULD_ALSO_MATCH_MAINCPP/ece140/sensors"
+TOPIC = BASE_TOPIC + "/#"
 
-BASE_TOPIC = os.getenv('BASE_TOPIC')
+if BASE_TOPIC == "ENTER_SOMETHING_UNIQUE_HERE_THAT_SHOULD_ALSO_MATCH_MAINCPP/ece140/sensors":
+    print("Please enter a unique topic for your server")
+    exit()
+
 
 def on_connect(client, userdata, flags, rc):
-    print("Connected with result code "+str(rc))
-    client.subscribe(BASE_TOPIC + "/readings")
+    """Callback for when the client connects to the broker."""
+    if rc == 0:
+        print("Successfully connected to MQTT broker")
+        client.subscribe(TOPIC)
+        print(f"Subscribed to {TOPIC}")
+    else:
+        print(f"Failed to connect with result code {rc}")
 
 def on_message(client, userdata, msg):
-    payload = msg.payload.decode()
-    print(f"Received `{payload}` from `{msg.topic}` topic")
+    """Callback for when a message is received."""
+    try:
+        # Parse JSON message
+        payload = json.loads(msg.payload.decode())
+        current_time = datetime.now()
+        
+        # check the topic if it is the base topic + /readings
+        # if it is, print the payload
+            
+    except json.JSONDecodeError:
+        print(f"\nReceived non-JSON message on {msg.topic}:")
+        print(f"Payload: {msg.payload.decode()}")
+
+
+
+def main():
+    # Create MQTT client
+    print("Creating MQTT client...")
+
+    # Set the callback functions onConnect and onMessage
+    print("Setting callback functions...")
     
-    # Parse JSON payload
-    data = eval(payload)
-    temp_value = data['temperature']
-    
-    # Send POST request every 5 seconds
-    current_time = time.time()
-    if current_time - on_message.last_request_time >= 5:
-        response = requests.post('http://localhost:6543/temperature', json={
-            'value': temp_value,
-            'unit': 'C',
-            'timestamp': time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime())
-        })
-        print(response.text)
-        on_message.last_request_time = current_time
+    try:
+        # Connect to broker
+        print("Connecting to broker...")
+        
+        # Start the MQTT loop
+        print("Starting MQTT loop...")
+        
+    except KeyboardInterrupt:
+        print("\nDisconnecting from broker...")
+        # make sure to stop the loop and disconnect from the broker
+        print("Exited successfully")
+    except Exception as e:
+        print(f"Error: {e}")
 
-on_message.last_request_time = 0
-
-client = mqtt.Client()
-client.on_connect = on_connect
-client.on_message = on_message
-
-client.connect("broker.hivemq.com", 1883, 60)
-
-client.loop_forever()
+if __name__ == "__main__":
+    main()
